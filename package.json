@@ -1,0 +1,43 @@
+{
+	"name": "server",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"dev": "tsx --watch src",
+		"start": "tsx src",
+		"format": "biome format --write src",
+		"lint": "biome lint --write src",
+		"check": "biome check --write src",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio",
+		"db:push": "drizzle-kit push",
+		"auth:schema": "@better-auth/cli generate --config=./src/lib/auth.ts --output=./src/db/schema/auth-schema.ts --yes",
+		"db:seed": "tsx src/db/seeder"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"devDependencies": {
+		"@biomejs/biome": "2.4.14",
+		"@faker-js/faker": "^10.4.0",
+		"@types/express": "^5.0.6",
+		"@types/morgan": "^1.9.10",
+		"@types/node": "^25.6.0",
+		"drizzle-kit": "^0.31.10",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.3"
+	},
+	"dependencies": {
+		"better-auth": "^1.6.9",
+		"dotenv": "^17.4.2",
+		"drizzle-orm": "^0.45.2",
+		"express": "^5.2.1",
+		"morgan": "^1.10.1",
+		"mysql2": "^3.22.3",
+		"winston": "^3.19.0",
+		"zod": "^4.4.2"
+	}
+}
