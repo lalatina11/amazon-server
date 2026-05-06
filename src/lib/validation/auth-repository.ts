@@ -15,11 +15,15 @@ const authRepository = {
 				},
 			});
 			if (res == null || !res.token) {
-				return { success: false, message: "Gagal membuat pengguna" };
+				return {
+					success: false,
+					message: "Gagal membuat pengguna",
+					data: null,
+				};
 			}
 			return { success: true, message: "Pengguna berhasil dibuat", data: res };
 		} catch {
-			return { success: false, message: "Terjadi kesalahan" };
+			return { success: false, message: "Terjadi kesalahan", data: null };
 		}
 	},
 	login: async (body: LoginSchema) => {
@@ -28,22 +32,22 @@ const authRepository = {
 				body: { ...body },
 			});
 			if (res == null || !res.token) {
-				return { success: false, message: "Password tidak valid" };
+				return { success: false, message: "Password tidak valid", data: null };
 			}
 			return { success: true, message: "Login berhasil", data: res };
 		} catch {
-			return { success: false, message: "Terjadi kesalahan" };
+			return { success: false, message: "Terjadi kesalahan", data: null };
 		}
 	},
 	logout: async (headers: Headers) => {
 		try {
 			const res = await auth.api.signOut({ headers });
 			if (res == null) {
-				return { success: false, message: "Gagal logout" };
+				return { success: false, message: "Gagal logout", data: null };
 			}
-			return { success: true, message: "Logout berhasil" };
+			return { success: true, message: "Logout berhasil", data: null };
 		} catch {
-			return { success: false, message: "Terjadi kesalahan" };
+			return { success: false, message: "Terjadi kesalahan", data: null };
 		}
 	},
 	getCurrentUser: async (headers: Headers) => {

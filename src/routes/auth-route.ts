@@ -67,7 +67,7 @@ r.post("/login", async (req, res) => {
 	if (!response.success) {
 		return res.status(400).json({
 			success: false,
-			error: response.message,
+			message: response.message,
 			data: null,
 		});
 	}
