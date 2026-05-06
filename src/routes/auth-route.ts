@@ -19,7 +19,7 @@ r.post("/register", async (req, res) => {
 	if (!validation.success) {
 		return res.status(400).json({
 			success: false,
-			error: validation.error.issues[0]?.message,
+			message: validation.error.issues[0]?.message,
 			data: null,
 		});
 	}
@@ -29,14 +29,14 @@ r.post("/register", async (req, res) => {
 	if (countExistingEmail) {
 		return res
 			.status(400)
-			.json({ success: false, error: "Email already exists", data: null });
+			.json({ success: false, message: "Email already exists", data: null });
 	}
 
 	const response = await authRepository.register(validation.data);
 	if (!response.success) {
 		return res
 			.status(400)
-			.json({ success: false, error: response.message, data: null });
+			.json({ success: false, message: response.message, data: null });
 	}
 	return res
 		.status(201)
@@ -49,7 +49,7 @@ r.post("/login", async (req, res) => {
 	if (!validation.success) {
 		return res.status(400).json({
 			success: false,
-			error: validation.error.issues[0]?.message,
+			message: validation.error.issues[0]?.message,
 			data: null,
 		});
 	}
@@ -59,7 +59,7 @@ r.post("/login", async (req, res) => {
 	if (!isEmailExists) {
 		return res.status(400).json({
 			success: false,
-			error: "Email tidak ditemukan",
+			message: "Email tidak ditemukan",
 			data: null,
 		});
 	}
@@ -85,7 +85,7 @@ r.delete("/logout", authMiddleware, async (req, res) => {
 	if (!response.success) {
 		return res.status(400).json({
 			success: false,
-			error: response.message,
+			message: response.message,
 			data: null,
 		});
 	}
