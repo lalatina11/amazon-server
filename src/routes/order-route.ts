@@ -10,8 +10,15 @@ const orderRoute: Router = Router();
 
 const r = orderRoute;
 
-r.get("/", async (_req, res) => {
+r.get("/", authMiddleware, userOnlyMiddleware, async (req, res) => {
+	const user = req.user;
+	if (!user) {
+		return res
+			.status(401)
+			.json({ success: false, message: "Unauthorized", data: null });
+	}
 	const data = await db.query.order.findMany({
+		where: (t, { eq }) => eq(t.userId, user.id),
 		with: { items: true },
 	});
 	res.json({ success: true, message: "Success", data });
