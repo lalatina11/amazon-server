@@ -36,7 +36,7 @@ const authRepository = {
 			}
 			return { success: true, message: "Login berhasil", data: res };
 		} catch {
-			return { success: false, message: "Terjadi kesalahan", data: null };
+			return { success: false, message: "Password tidak valid", data: null };
 		}
 	},
 	logout: async (headers: Headers) => {
