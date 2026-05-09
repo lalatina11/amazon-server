@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { tables } from "../db/tables.js";
@@ -21,6 +21,16 @@ r.post("/add-to-cart", authMiddleware, userOnlyMiddleware, async (req, res) => {
 		});
 	}
 
+	const user = req.user;
+
+	if (!user) {
+		return res.status(401).json({
+			success: false,
+			message: "Unauthorized",
+			data: null,
+		});
+	}
+
 	const countValidProductId = await db.$count(
 		tables.product,
 		eq(tables.product.id, validation.data.productId),
@@ -34,20 +44,33 @@ r.post("/add-to-cart", authMiddleware, userOnlyMiddleware, async (req, res) => {
 		});
 	}
 
+	const countExistingCart = await db.$count(
+		tables.cart,
+		and(
+			eq(tables.cart.productId, validation.data.productId),
+			eq(tables.cart.userId, user.id),
+		),
+	);
+
+	if (countExistingCart > 0) {
+		return res.status(400).json({
+			success: false,
+			message: "Produk ini sudah masuk ke dalam keranjang anda",
+			data: null,
+		});
+	}
+
 	const cartId = crypto.randomUUID();
 
-	await db
-		.insert(tables.cart)
-		.values({
-			userId: req.user?.id || "",
-			id: cartId,
-			productId: validation.data.productId,
-			quantity: validation.data.qty,
-		})
-		.$returningId();
+	await db.insert(tables.cart).values({
+		userId: user.id || "",
+		id: cartId,
+		productId: validation.data.productId,
+		quantity: validation.data.qty,
+	});
 	return res
 		.status(201)
-		.json({ succes: true, message: "Berhasil", data: null });
+		.json({ success: true, message: "Berhasil", data: null });
 });
 
 r.get("/", authMiddleware, userOnlyMiddleware, async (req, res) => {
@@ -57,7 +80,10 @@ r.get("/", authMiddleware, userOnlyMiddleware, async (req, res) => {
 			.status(401)
 			.json({ success: false, message: "Unauthorized", data: null });
 	}
-	const carts = await db.query.cart.findMany({ with: { product: true } });
+	const carts = await db.query.cart.findMany({
+		with: { product: true },
+		orderBy: (t, { desc }) => desc(t.createdAt),
+	});
 	const data = carts.map((cart) => {
 		return { ...cart, totalPrice: cart.quantity * Number(cart.product.price) };
 	});
