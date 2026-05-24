@@ -81,6 +81,7 @@ r.get("/", authMiddleware, userOnlyMiddleware, async (req, res) => {
 			.json({ success: false, message: "Unauthorized", data: null });
 	}
 	const carts = await db.query.cart.findMany({
+		where: (t, { eq }) => eq(t.userId, user.id),
 		with: { product: true },
 		orderBy: (t, { desc }) => desc(t.createdAt),
 	});
