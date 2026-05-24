@@ -24,6 +24,36 @@ r.get("/", authMiddleware, userOnlyMiddleware, async (req, res) => {
 	res.json({ success: true, message: "Success", data });
 });
 
+r.get("/detail/:id", authMiddleware, userOnlyMiddleware, async (req, res) => {
+	const user = req.user;
+	if (!user) {
+		return res
+			.status(401)
+			.json({ success: false, message: "Unauthorized", data: null });
+	}
+	const { id } = req.params;
+	if (!id) {
+		return res
+			.status(400)
+			.json({ success: false, message: "Id Pesanan tidak valid", data: null });
+	}
+
+	const existingOrder = await db.query.order.findFirst({
+		where: (t, { eq }) => eq(t.id, id.toString()),
+		columns: { id: true },
+	});
+	if (!existingOrder) {
+		return res
+			.status(400)
+			.json({ success: false, message: "Pesanan tidak valid", data: null });
+	}
+	const data = await db.query.order.findFirst({
+		where: (t, { eq }) => eq(t.id, existingOrder.id),
+		with: { items: true },
+	});
+	res.json({ success: true, message: "Success", data });
+});
+
 r.post("/create", authMiddleware, userOnlyMiddleware, async (req, res) => {
 	const validation = orderSchema.safeParse(req.body);
 
@@ -83,28 +113,38 @@ r.post("/create", authMiddleware, userOnlyMiddleware, async (req, res) => {
 
 	await db.insert(tables.order).values({ id: orderId, userId: req.user.id });
 
+	const id = crypto.randomUUID();
+
 	await db.insert(tables.orderItem).values({
-		id: crypto.randomUUID(),
+		id,
 		productId: product.id,
 		orderId,
 		quantity,
 		priceAtPurchase: (Number(product.price) * quantity).toString(),
 	});
-	return res.json({ success: true, message: "Success", data: null });
+	return res.json({ success: true, message: "Success", data: { id } });
 });
 
-r.patch("/pay/:id", async (req, res) => {
+r.patch("/pay/:id", authMiddleware, userOnlyMiddleware, async (req, res) => {
 	const { id } = req.params;
-	const orderCount = await db.$count(tables.order, eq(tables.order.id, id));
-	if (orderCount < 1) {
+	if (!id) {
 		return res
 			.status(400)
-			.json({ success: false, message: "Order tidak ditemukan", data: null });
+			.json({ success: false, message: "Id Pesanan tidak valid", data: null });
+	}
+	const existingOrder = await db.query.order.findFirst({
+		where: (t, { eq }) => eq(t.id, id.toString()),
+		columns: { id: true },
+	});
+	if (!existingOrder) {
+		return res
+			.status(400)
+			.json({ success: false, message: "Pesanan tidak valid", data: null });
 	}
 	await db
 		.update(tables.order)
 		.set({ status: "PAID" })
-		.where(eq(tables.order.id, id));
+		.where(eq(tables.order.id, existingOrder.id));
 	return res.json({ success: true, message: "Success", data: null });
 });
 
